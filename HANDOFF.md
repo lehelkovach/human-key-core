@@ -27,8 +27,8 @@ captures the current state for the next agent or developer.
 
 ## Known blockers
 
-- Terraform/OpenTofu and OCI CLI were unavailable in the agent image, so live VM
-  provisioning was not run here.
+- Terraform/OpenTofu were unavailable in the agent image. OCI CLI was installed locally and `scripts/oci/ensure-dev-vm.sh` found an existing running `intuit-card-dev` VM.
+- The VM responded on port 3000 with an older Intuit Card page, but `/api/health` returned 404. GitHub Actions skipped the SSH deploy step because `DEV_VM_HOST`/`DEV_VM_SSH_KEY` secrets were not configured, and OCI Run Command remained `ACCEPTED` during polling. Live update verification still needs VM SSH access or a functioning OCI agent.
 - Intuit OAuth client ID/secret were available, but `INTUIT_REDIRECT_URI`,
   `INTUIT_ACCESS_TOKEN`, and `INTUIT_REFRESH_TOKEN` were not. Live QuickBooks
   calls therefore remain blocked until OAuth credentials are supplied.

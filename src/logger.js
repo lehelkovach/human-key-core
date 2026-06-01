@@ -6,7 +6,7 @@ const LEVELS = {
 };
 
 const SENSITIVE_KEY_PATTERN = /(authorization|access.?token|refresh.?token|client.?secret|secret|password|cvv|cvc|card.?number|private.?key|ssh.?key|api.?key)/i;
-const CARD_NUMBER_PATTERN = /\b(?:\d[ -]?){13,19}\b/g;
+const CARD_NUMBER_PATTERN = /\b(?:\d[ -]?){12,18}\d\b/g;
 
 function configuredLevel() {
   return (process.env.LOG_LEVEL || 'info').toLowerCase();

@@ -11,9 +11,7 @@ At the start of this run, the environment exposed these secret families:
 - Present: `OCI_*`, `INTUIT_CLIENT_ID`, `INTUIT_CLIENT_SECRET`.
 - Missing: `INTUIT_REDIRECT_URI`, `INTUIT_ACCESS_TOKEN`, `INTUIT_REFRESH_TOKEN`.
 
-The agent image did not have Terraform/OpenTofu or OCI CLI installed. Because of
-that, live Oracle Cloud provisioning was not executed from the agent. The
-repeatable OCI CLI path below is ready to run once `oci` is available.
+The agent image did not have Terraform/OpenTofu or OCI CLI installed initially. OCI CLI was installed with `python3 -m pip install --user oci-cli` during this run, and the script found an existing running VM named `intuit-card-dev`. The VM was reachable on port 3000 but served an older build; GitHub Actions lacked SSH secrets, and OCI Run Command remained in `ACCEPTED` state during polling, so live deployment of this revision still needs VM SSH access or a working OCI agent.
 
 ## Required Oracle Cloud inputs
 
@@ -31,8 +29,7 @@ Optional:
 
 - `OCI_SHAPE` - defaults to `VM.Standard.E2.1.Micro`.
 - `OCI_IMAGE_OCID` - overrides automatic Ubuntu image lookup.
-- `OCI_SSH_PUBLIC_KEY` - public SSH key to inject into the VM. If omitted, the
-  script generates an ephemeral key and prints the private key once.
+- `OCI_SSH_PUBLIC_KEY` - public SSH key to inject into a newly-created VM. If omitted, the script generates a local key under `.oci-dev/` and prints only the path.
 - `OCI_INSTANCE_DISPLAY_NAME` - defaults to `intuit-card-dev`.
 - `OCI_PROJECT_REPO` - defaults to `intuit-card`.
 - `PORT` - defaults to `3000` and is opened in the generated security list.
@@ -57,7 +54,8 @@ The script:
 3. Reuses it if present.
 4. Otherwise creates a VCN, public subnet, route table, security list, and an
    Always Free-eligible compute instance.
-5. Sends `infra/cloud-init/dev-vm.yaml` as user data to bootstrap the app.
+5. Prints the public IP for an existing VM.
+6. Sends `infra/cloud-init/dev-vm.yaml` as user data to bootstrap a new VM.
 
 ## VM bootstrap
 

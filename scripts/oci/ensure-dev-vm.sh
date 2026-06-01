@@ -41,7 +41,10 @@ tenancy=${OCI_TENANCY_OCID}
 region=${OCI_REGION}
 key_file=${WORK_DIR}/oci_api_key.pem
 CONFIG
+chmod 600 "${WORK_DIR}/config"
 export OCI_CLI_CONFIG_FILE="${WORK_DIR}/config"
+export SUPPRESS_LABEL_WARNING=True
+export OCI_CLI_SUPPRESS_FILE_PERMISSIONS_WARNING=True
 
 echo "[oci] Looking for existing ${DISPLAY_NAME}"
 existing_id="$(oci compute instance list \
@@ -53,7 +56,15 @@ existing_id="$(oci compute instance list \
 
 if [ -n "${existing_id}" ] && [ "${existing_id}" != "null" ]; then
   echo "[oci] Reusing running instance ${existing_id}"
+  vnic_id="$(oci compute vnic-attachment list --compartment-id "${OCI_COMPARTMENT_OCID}" --instance-id "${existing_id}" --query 'data[0]."vnic-id"' --raw-output 2>/dev/null || true)"
+  public_ip=""
+  if [ -n "${vnic_id}" ] && [ "${vnic_id}" != "null" ]; then
+    public_ip="$(oci network vnic get --vnic-id "${vnic_id}" --query 'data."public-ip"' --raw-output 2>/dev/null || true)"
+  fi
   oci compute instance get --instance-id "${existing_id}" --query 'data.{id:id,displayName:"display-name",state:"lifecycle-state"}'
+  if [ -n "${public_ip}" ] && [ "${public_ip}" != "null" ]; then
+    echo "[oci] Public IP: ${public_ip}"
+  fi
   exit 0
 fi
 
@@ -126,10 +137,16 @@ fi
 
 ssh_public_key="${OCI_SSH_PUBLIC_KEY:-}"
 if [ -z "${ssh_public_key}" ]; then
-  ssh-keygen -t ed25519 -N '' -f "${WORK_DIR}/${DISPLAY_NAME}_ssh" -C "${DISPLAY_NAME}" >/dev/null
-  ssh_public_key="$(cat "${WORK_DIR}/${DISPLAY_NAME}_ssh.pub")"
-  echo "[oci] Generated ephemeral SSH key. Save this private key now if you need direct SSH access:"
-  sed 's/^/[oci] /' "${WORK_DIR}/${DISPLAY_NAME}_ssh"
+  key_dir="${OCI_GENERATED_KEY_DIR:-.oci-dev}"
+  mkdir -p "${key_dir}"
+  chmod 700 "${key_dir}"
+  key_path="${key_dir}/${DISPLAY_NAME}_ssh"
+  if [ ! -f "${key_path}" ]; then
+    ssh-keygen -t ed25519 -N '' -f "${key_path}" -C "${DISPLAY_NAME}" >/dev/null
+    chmod 600 "${key_path}"
+  fi
+  ssh_public_key="$(cat "${key_path}.pub")"
+  echo "[oci] Using generated SSH key at ${key_path}. Keep it out of git and store it securely."
 fi
 
 cloud_init_b64="$(base64 -w0 infra/cloud-init/dev-vm.yaml)"
