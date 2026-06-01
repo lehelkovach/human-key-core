@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Intuit Card Dev Preauthorization</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <h1>QuickBooks Payments CSV Preauthorization</h1>
+        <p>
+          Upload a comma-delimited CSV. Cells are handled as text: cell 1 card number,
+          cell 2 CVV, cell 3 expiration text, and cell 6 ZIP code. Cells 4 and 5 are reserved.
+        </p>
+        <p class="warning">
+          The requested expiration format was written as "mm/ds"; this app displays the value
+          and only enforces mm/yy or mm/yyyy when live QuickBooks calls are enabled.
+        </p>
+      </section>
+
+      <form id="upload-form" class="card">
+        <label for="csv">CSV file</label>
+        <input id="csv" name="csv" type="file" accept=".csv,text/csv" required>
+        <button type="submit">Upload and process</button>
+      </form>
+
+      <section class="card">
+        <h2>Status</h2>
+        <div id="status">Waiting for CSV upload.</div>
+      </section>
+
+      <section class="card">
+        <h2>Results</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Row</th>
+                <th>Last four</th>
+                <th>Expiration</th>
+                <th>Status code</th>
+                <th>Processor status</th>
+                <th>Decline reason</th>
+                <th>Error / failure message</th>
+              </tr>
+            </thead>
+            <tbody id="results-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+    <script src="/app.js"></script>
+  </body>
+</html>

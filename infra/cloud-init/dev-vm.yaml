@@ -1,0 +1,10 @@
+#cloud-config
+package_update: true
+packages:
+  - git
+  - curl
+  - ca-certificates
+runcmd:
+  - [ bash, -lc, "curl -fsSL https://raw.githubusercontent.com/lehelkovach/human-key-core/dev/scripts/vm/bootstrap-dev.sh -o /tmp/bootstrap-intuit-card-dev.sh" ]
+  - [ bash, -lc, "chmod +x /tmp/bootstrap-intuit-card-dev.sh" ]
+  - [ bash, -lc, "REPO_URL=https://github.com/lehelkovach/human-key-core.git BRANCH=dev /tmp/bootstrap-intuit-card-dev.sh" ]

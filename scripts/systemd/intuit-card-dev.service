@@ -1,0 +1,18 @@
+[Unit]
+Description=Intuit Card dev web service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/intuit-card
+EnvironmentFile=/etc/intuit-card/intuit-card.env
+ExecStart=/usr/bin/npm run dev
+Restart=always
+RestartSec=3
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

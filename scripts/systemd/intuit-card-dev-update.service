@@ -1,0 +1,9 @@
+[Unit]
+Description=Update Intuit Card dev checkout from origin/dev
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/opt/intuit-card/scripts/vm/update-dev.sh

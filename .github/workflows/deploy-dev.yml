@@ -1,0 +1,29 @@
+name: Deploy dev
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      DEV_VM_HOST: ${{ secrets.DEV_VM_HOST }}
+      DEV_VM_USER: ${{ secrets.DEV_VM_USER }}
+      DEV_VM_SSH_KEY: ${{ secrets.DEV_VM_SSH_KEY }}
+      DEV_VM_SSH_PORT: ${{ secrets.DEV_VM_SSH_PORT }}
+    steps:
+      - name: Deploy on Oracle Cloud VM
+        if: ${{ env.DEV_VM_HOST != '' && env.DEV_VM_SSH_KEY != '' }}
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ env.DEV_VM_HOST }}
+          username: ${{ env.DEV_VM_USER || 'ubuntu' }}
+          key: ${{ env.DEV_VM_SSH_KEY }}
+          port: ${{ env.DEV_VM_SSH_PORT || '22' }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            sudo /opt/intuit-card/scripts/vm/update-dev.sh
+            sudo journalctl -u intuit-card-dev.service -n 80 --no-pager
